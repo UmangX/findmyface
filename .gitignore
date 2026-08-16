@@ -1,0 +1,101 @@
+# =========================
+# Python
+# =========================
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+.venv/
+venv/
+env/
+ENV/
+testDataset/
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+*.egg-info/
+dist/
+build/
+
+# Python environment / tooling
+.python-version
+
+# uv
+.uv/
+
+# =========================
+# Go
+# =========================
+
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go build output
+/bin/
+/build/
+
+# Test / coverage
+*.test
+*.out
+coverage.out
+coverage.html
+
+# Go workspace
+go.work.sum
+
+# =========================
+# macOS
+# =========================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# macOS metadata
+._*
+
+# Finder
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+
+# =========================
+# IDE / Editors
+# =========================
+
+.vscode/
+.idea/
+
+*.swp
+*.swo
+*~
+
+# Zed
+.zed/
+
+# =========================
+# Project-specific
+# =========================
+
+# Face / ML generated data
+*.pkl
+*.pickle
+*.onnx
+
+# Generated thumbnails / datasets
+thumbnails/
+cache/
+data/
+models/
+
+# Logs
+*.log
