@@ -21,8 +21,6 @@ def showimage(df, id):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-
-
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Provide the Faces database file and try again")
