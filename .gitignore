@@ -3,6 +3,7 @@
 # =========================
 
 __pycache__/
+testDataset
 *.py[cod]
 *$py.class
 *.db
