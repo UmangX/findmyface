@@ -1,2 +1,2 @@
 targetcheck:
-	uv run main.py ../testDataset ../testDataset/tctarget.jpg
+	uv run main.py ../testDataset/Manu ../testDataset/tctarget.jpg

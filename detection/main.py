@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-
+import hashlib
 import cv2
 import lancedb
 import numpy as np
@@ -10,7 +10,16 @@ from tqdm import tqdm
 
 
 def get_all_images(folder_path):
-    image_extensions = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff"}
+    image_extensions = {
+        ".jpg",
+        ".heic",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".bmp",
+        ".webp",
+        ".tiff",
+    }
     folder = Path(folder_path)
     return [
         str(file_path)
@@ -35,6 +44,7 @@ def embeddingFromFile(app, file):
 
 
 def generateEmbeds(app, targetfolder, images):
+
     cachelocation = Path(targetfolder) / "findmyfacedb"
     # connecting the database is accessing the file
     db = lancedb.connect(str(cachelocation))
@@ -51,8 +61,8 @@ def generateEmbeds(app, targetfolder, images):
         if img is None:
             continue
         faces = app.get(img)
-        if len(faces) >= 1:
-            embeds.append([image_path, faces[0].normed_embedding.tolist()])
+        for f in faces:
+            embeds.append([image_path, f.normed_embedding.tolist()])
     if not embeds:
         return None
     embeds_df = pd.DataFrame(embeds, columns=["path", "embeds"])
@@ -62,6 +72,7 @@ def generateEmbeds(app, targetfolder, images):
 
 
 if __name__ == "__main__":
+
     images = []
     target = ""
 
@@ -69,6 +80,7 @@ if __name__ == "__main__":
         images = get_all_images(sys.argv[1])
         target = sys.argv[2]
 
+    cachelocation = Path(sys.argv[1]) / "findmyfacedb"
     app = FaceAnalysis()
     app.prepare(ctx_id=0, det_size=(640, 640))
     # ctx_id=-1 for cpu and 0 for gpu
@@ -78,11 +90,15 @@ if __name__ == "__main__":
     embeds_df = generateEmbeds(app, sys.argv[1], images)
     target_emb = embeddingFromFile(app, target)
 
+    matches = pd.DataFrame()
+
     if embeds_df is not None and not embeds_df.empty:
-        # 1. Convert series of 512-d lists/arrays to contiguous 2D NumPy matrix
+        # 1. Converts series of 512-d lists/arrays to contiguous 2D NumPy matrix
         matrix = np.vstack(embeds_df["embeds"].values)
 
         # 2. Vectorized Cosine Distance computation (normalized embeddings)
+        # this is done on the whole matrix which is the stacked NumPy Matrix
+        # cosine_distance is the series of distance computed against target embeddings
         cosine_distances = 1.0 - (matrix @ target_emb)
 
         # 3. Filter matches under threshold (e.g., 0.4)
@@ -91,4 +107,15 @@ if __name__ == "__main__":
         matches = embeds_df[embeds_df["distance"] < threshold].sort_values("distance")
 
         print(f"\nFound {len(matches)} matching faces:")
-        print(matches[["path", "distance"]])
+
+    db = lancedb.connect(str(cachelocation))     
+    #convert the taret embedding to bytes and hash it using SHA-256 
+    #use this for table name in the db
+    targethash = hashlib.sha256(target_emb.tobytes())
+    print(f"Target image hash: {targethash.hexdigest()}") 
+
+    matches_table = db.create_table(targethash.hexdigest(), data=matches, mode="overwrite")     
+    print(db.table_names())
+
+    
+    
